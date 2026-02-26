@@ -200,3 +200,31 @@ threading.Thread(target=nettoyer_sessions, daemon=True).start()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
+# Ajoute ceci dans ton fichier serveur_relais.py
+
+@app.route('/keepalive/<session_id>', methods=['POST'])
+def keepalive_session(session_id):
+    """Le PC appelle cette route toutes les 30 secondes pour garder la session active"""
+    if session_id not in sessions:
+        return jsonify({'success': False, 'error': 'Session invalide'}), 404
+    
+    session = sessions[session_id]
+    session['last_keepalive'] = time.time()
+    session['status'] = 'active'
+    
+    return jsonify({'success': True, 'message': 'Session maintenue'})
+
+@app.route('/api/resultat-selfie/<session_id>', methods=['POST'])
+def recevoir_resultat(session_id):
+    """Reçoit le résultat du selfie depuis le téléphone"""
+    if session_id not in sessions:
+        return jsonify({'success': False, 'error': 'Session invalide'}), 404
+    
+    data = request.json
+    sessions[session_id]['status'] = 'termine'
+    sessions[session_id]['resultat'] = data.get('resultat', 'succès')
+    sessions[session_id]['completed_at'] = time.time()
+    
+    print(f"✅ Résultat reçu pour session {session_id}")
+    return jsonify({'success': True})
+

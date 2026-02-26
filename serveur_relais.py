@@ -4,7 +4,7 @@ import requests
 import uuid
 import time
 import threading
-
+# -*- coding: latin-1 -*-
 app = Flask(__name__)
 CORS(app)
 

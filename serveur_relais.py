@@ -1,10 +1,10 @@
+# -*- coding: latin-1 -*-
 from flask import Flask, request, jsonify, redirect, make_response, render_template_string
 from flask_cors import CORS
 import requests
 import uuid
 import time
 import threading
-# -*- coding: latin-1 -*-
 app = Flask(__name__)
 CORS(app)
 
@@ -36,9 +36,9 @@ PAGE_INSTRUCTION = """
         <p>Session : <strong>{{ session_id }}</strong></p>
         
         <div class="info">
-            <p>?? Clique sur le bouton pour être redirigé vers la page selfie.</p>
+            <p>?? Clique sur le bouton pour Ãªtre redirigÃ© vers la page selfie.</p>
             <p>?? Fais le selfie normalement.</p>
-            <p id="instruction">? Une fois terminé, cette page se mettra à jour automatiquement.</p>
+            <p id="instruction">? Une fois terminÃ©, cette page se mettra Ã  jour automatiquement.</p>
         </div>
         
         <button onclick="window.location.href='/rediriger/{{ session_id }}'">
@@ -49,14 +49,14 @@ PAGE_INSTRUCTION = """
     </div>
     
     <script>
-        // Vérifier le statut toutes les 2 secondes
+        // VÃ©rifier le statut toutes les 2 secondes
         function checkStatus() {
             fetch('/statut/{{ session_id }}')
                 .then(r => r.json())
                 .then(data => {
                     if (data.status === 'termine') {
-                        document.getElementById('instruction').innerHTML = '? Selfie terminé ! Tu peux fermer cette page.';
-                        document.getElementById('status').innerHTML = '? Terminé - La session a été mise à jour.';
+                        document.getElementById('instruction').innerHTML = '? Selfie terminÃ© ! Tu peux fermer cette page.';
+                        document.getElementById('status').innerHTML = '? TerminÃ© - La session a Ã©tÃ© mise Ã  jour.';
                     }
                 });
         }
@@ -72,11 +72,11 @@ def index():
 
 @app.route('/api/creer-lien', methods=['POST'])
 def creer_lien():
-    """Reçoit les données de session du PC et génère un lien public"""
+    """ReÃ§oit les donnÃ©es de session du PC et gÃ©nÃ¨re un lien public"""
     data = request.json
     session_id = str(uuid.uuid4())[:8]
     
-    # Stocker les données de session
+    # Stocker les donnÃ©es de session
     sessions[session_id] = {
         'url': data.get('url'),
         'cookies': data.get('cookies', []),
@@ -87,7 +87,7 @@ def creer_lien():
         'pc_notifie': False
     }
     
-    # Générer le lien public
+    # GÃ©nÃ©rer le lien public
     lien_public = f"https://{request.host}/session/{session_id}"
     
     return jsonify({
@@ -98,9 +98,9 @@ def creer_lien():
 
 @app.route('/session/<session_id>')
 def ouvrir_session(session_id):
-    """Point d'entrée pour le téléphone"""
+    """Point d'entrÃ©e pour le tÃ©lÃ©phone"""
     if session_id not in sessions:
-        return "Session invalide ou expirée", 404
+        return "Session invalide ou expirÃ©e", 404
     
     return render_template_string(PAGE_INSTRUCTION, session_id=session_id)
 
@@ -112,7 +112,7 @@ def rediriger_vers_bls(session_id):
     
     session = sessions[session_id]
     
-    # Créer une réponse de redirection
+    # CrÃ©er une rÃ©ponse de redirection
     response = make_response(redirect(session['url']))
     
     # Ajouter les cookies de la session originale
@@ -121,7 +121,7 @@ def rediriger_vers_bls(session_id):
             name, value = cookie.split('=', 1)
             response.set_cookie(name.strip(), value.strip())
     
-    # Mettre à jour le statut
+    # Mettre Ã  jour le statut
     session['status'] = 'redirige'
     session['redirected_at'] = time.time()
     
@@ -143,49 +143,49 @@ def statut_session(session_id):
 
 @app.route('/api/notifier-fin/<session_id>', methods=['POST'])
 def notifier_fin(session_id):
-    """Appelé par le PC quand le selfie est terminé"""
+    """AppelÃ© par le PC quand le selfie est terminÃ©"""
     if session_id in sessions:
         sessions[session_id]['status'] = 'termine'
         sessions[session_id]['completed_at'] = time.time()
         sessions[session_id]['pc_notifie'] = True
     return jsonify({'success': True})
 
-# ?? NOUVEAU : Détection automatique via webhook
+# ?? NOUVEAU : DÃ©tection automatique via webhook
 @app.route('/webhook-bls', methods=['POST'])
 def webhook_bls():
     """
-    Point d'entrée que BLS pourrait appeler après le selfie.
-    À configurer si BLS permet les webhooks.
+    Point d'entrÃ©e que BLS pourrait appeler aprÃ¨s le selfie.
+    Ã€ configurer si BLS permet les webhooks.
     """
     data = request.json
-    print("?? Webhook reçu:", data)
+    print("?? Webhook reÃ§u:", data)
     
     # Chercher la session correspondante
     for session_id, session in sessions.items():
-        # Ici il faut un identifiant unique dans la réponse BLS
-        # À adapter selon ce que BLS renvoie
+        # Ici il faut un identifiant unique dans la rÃ©ponse BLS
+        # Ã€ adapter selon ce que BLS renvoie
         pass
     
     return jsonify({'success': True})
 
-# ?? NOUVEAU : Page de callback (si BLS redirige vers une URL spécifique)
+# ?? NOUVEAU : Page de callback (si BLS redirige vers une URL spÃ©cifique)
 @app.route('/callback-bls')
 def callback_bls():
     """
-    URL de callback où BLS redirige après le selfie.
+    URL de callback oÃ¹ BLS redirige aprÃ¨s le selfie.
     """
     session_id = request.args.get('session')
     if session_id and session_id in sessions:
         sessions[session_id]['status'] = 'termine'
         sessions[session_id]['completed_at'] = time.time()
-        return "? Selfie terminé ! Vous pouvez fermer cette page."
+        return "? Selfie terminÃ© ! Vous pouvez fermer cette page."
     
-    return "Session non trouvée", 404
+    return "Session non trouvÃ©e", 404
 
 # Nettoyage automatique des vieilles sessions (plus de 30 minutes)
 def nettoyer_sessions():
     while True:
-        time.sleep(60)  # Vérifier toutes les minutes
+        time.sleep(60)  # VÃ©rifier toutes les minutes
         maintenant = time.time()
         a_supprimer = []
         for session_id, session in sessions.items():
@@ -193,9 +193,9 @@ def nettoyer_sessions():
                 a_supprimer.append(session_id)
         for session_id in a_supprimer:
             del sessions[session_id]
-            print(f"?? Session {session_id} supprimée (expirée)")
+            print(f"?? Session {session_id} supprimÃ©e (expirÃ©e)")
 
-# Démarrer le thread de nettoyage
+# DÃ©marrer le thread de nettoyage
 threading.Thread(target=nettoyer_sessions, daemon=True).start()
 
 if __name__ == '__main__':

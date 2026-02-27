@@ -244,3 +244,39 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 10000))
     print(f"🚀 Starting BLS Liveness Server on port {port}...")
     app.run(host='0.0.0.0', port=port, debug=False)
+@app.route('/selfie/<session_id>')
+def page_selfie(session_id):
+    """Page d'instruction pour le téléphone"""
+    return f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Selfie BLS</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            body {{ font-family: Arial; background: #f0f0f0; padding: 20px; }}
+            .container {{ max-width: 400px; margin: 0 auto; background: white; padding: 25px; border-radius: 15px; }}
+            .btn {{ background: #25D366; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 16px; cursor: pointer; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h2>📱 Selfie BLS</h2>
+            <p>Session: <strong>{session_id}</strong></p>
+            <p>Cliquez ci-dessous pour démarrer le selfie</p>
+            <button class="btn" onclick="demarrerSelfie()">
+                📸 Démarrer le selfie
+            </button>
+            <div id="status"></div>
+        </div>
+        <script>
+            function demarrerSelfie() {{
+                document.getElementById('status').innerHTML = '⏳ Redirection...';
+                // Ici tu rediriges vers la vraie page selfie BLS
+                window.location.href = 'https://algeria.blsspainglobal.com/dza/appointment/livenessrequest';
+            }}
+        </script>
+    </body>
+    </html>
+    """
